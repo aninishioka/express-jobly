@@ -95,6 +95,41 @@ describe("GET /companies", function () {
           ],
     });
   });
+
+  test("get companies filtered by name", async function () {
+    const resp = await request(app).get("/companies?nameLike=c1");
+    expect(resp.statusCode).toEqual(200);
+    expect(resp.body).toEqual({
+      companies: [
+        {
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          numEmployees: 1,
+          logoUrl: "http://c1.img",
+        }
+      ]
+    })
+  });
+
+  test("get companies with minEmployees > maxEmployees", async function () {
+    const resp = await request(app).get("/companies?minEmployees=200&maxEmployees=100");
+    expect(resp.statusCode).toEqual(400);
+    expect(resp.body).toEqual({
+      "error": {
+        "message": "minEmployees must be less than maxEmployees",
+        "status": 400
+      }
+    })
+  });
+
+  test("get companies with invalid minEmployees", async function () {
+    const resp = await request(app).get("/companies?minEmployees=a");
+    expect(resp.statusCode).toEqual(400);
+    expect(resp.body.error.message).toEqual(
+        ["instance.minEmployees is not of a type(s) integer"],
+    )
+  });
 });
 
 /************************************** GET /companies/:handle */

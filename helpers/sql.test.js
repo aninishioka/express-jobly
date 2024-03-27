@@ -30,4 +30,15 @@ describe("sqlForPartialUpdate", function () {
   });
 
 
+  test("update multiple columns", function () {
+    let dataToUpdate = { firstName: "Aliya", last_name: "last" };
+    let jsToSql = { firstName: "first_name", lastName: "last_name" };
+
+    const results = sqlForPartialUpdate(dataToUpdate, jsToSql);
+
+    expect(results.setCols).toEqual('"first_name"=$1, "last_name"=$2');
+    expect(results.values).toEqual(["Aliya", "last"]);
+  });
+
+
 });

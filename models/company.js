@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
-const { sqlForPartialUpdate } = require("../helpers/sql");
+const { sqlForPartialUpdate} = require("../helpers/sql");
 
 /** Related functions for companies. */
 
@@ -38,12 +38,12 @@ class Company {
                     description,
                     num_employees AS "numEmployees",
                     logo_url AS "logoUrl"`, [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      handle,
+      name,
+      description,
+      numEmployees,
+      logoUrl,
+    ],
     );
     const company = result.rows[0];
 
@@ -52,10 +52,32 @@ class Company {
 
   /** Find all companies.
    *
+   * Takes filter object. Can filter on provided search filters:
+    * - minEmployees
+    * - maxEmployees
+    * - nameLike (will find case-insensitive, partial matches)
+   *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
+// TODO: separate out sql where clause builder
+// TODO: sanitize where clause
+  static async findAll(filter = {}) {
+    let whereClause = '';
+    const { minEmployees, maxEmployees, nameLike } = filter;
 
-  static async findAll() {
+    if (minEmployees > maxEmployees) {
+      throw new BadRequestError('minEmployees must be less than maxEmployees');
+    }
+
+    if (Object.keys(filter).length > 0) {
+      whereClause = 'WHERE ';
+      const filters = [];
+      if (minEmployees) filters.push(`num_employees >= ${minEmployees}`);
+      if (maxEmployees) filters.push(`num_employees <= ${maxEmployees}`);
+      if (nameLike) filters.push(`name ILIKE '%${nameLike}%'`);
+      whereClause += filters.join(' AND ');
+    }
+
     const companiesRes = await db.query(`
         SELECT handle,
                name,
@@ -63,6 +85,7 @@ class Company {
                num_employees AS "numEmployees",
                logo_url      AS "logoUrl"
         FROM companies
+        ${whereClause}
         ORDER BY name`);
     return companiesRes.rows;
   }
@@ -106,11 +129,11 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `

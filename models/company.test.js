@@ -85,6 +85,21 @@ describe("findAll", function () {
       },
     ]);
   });
+
+  // TODO: do all pessimistic paths
+  test("works: filter by minEmployees", async function () {
+    const filter = { minEmployees: 3 }
+    let companies = await Company.findAll(filter);
+    expect(companies).toEqual([
+      {
+        handle: "c3",
+        name: "C3",
+        description: "Desc3",
+        numEmployees: 3,
+        logoUrl: "http://c3.img",
+      }
+    ]);
+  });
 });
 
 /************************************** get */
