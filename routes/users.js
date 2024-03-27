@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const { ensureLoggedIn } = require("../middleware/auth");
+const { ensureLoggedIn, ensureIsAdmin, ensureIsAdminOrUser } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -14,7 +14,7 @@ const userUpdateSchema = require("../schemas/userUpdate.json");
 
 const router = express.Router();
 
-
+// TODO: update docstring (only admin)
 /** POST / { user }  => { user, token }
  *
  * Adds a new user. This is not the registration endpoint --- instead, this is
@@ -27,7 +27,7 @@ const router = express.Router();
  * Authorization required: login
  **/
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
       req.body,
       userNewSchema,
@@ -51,7 +51,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: login
  **/
 
-router.get("/", ensureLoggedIn, async function (req, res, next) {
+router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
   const users = await User.findAll();
   return res.json({ users });
 });
@@ -64,7 +64,7 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: login
  **/
 
-router.get("/:username", ensureLoggedIn, async function (req, res, next) {
+router.get("/:username", ensureIsAdminOrUser, async function (req, res, next) {
   const user = await User.get(req.params.username);
   return res.json({ user });
 });
@@ -80,7 +80,7 @@ router.get("/:username", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: login
  **/
 
-router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
+router.patch("/:username", ensureIsAdminOrUser, async function (req, res, next) {
   const validator = jsonschema.validate(
       req.body,
       userUpdateSchema,
@@ -101,7 +101,7 @@ router.patch("/:username", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: login
  **/
 
-router.delete("/:username", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:username", ensureIsAdminOrUser, async function (req, res, next) {
   await User.remove(req.params.username);
   return res.json({ deleted: req.params.username });
 });

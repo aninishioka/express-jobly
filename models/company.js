@@ -76,7 +76,7 @@ class Company {
     //   whereClause += filters.join(' AND ');
     // }
 
-    const { setCols, values } = this.filterCompanies(filter);
+    const { setCols, values } = this._filterCompanies(filter);
 
 
     const companiesRes = await db.query(`

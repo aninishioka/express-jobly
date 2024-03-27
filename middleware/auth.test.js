@@ -74,13 +74,13 @@ describe("ensureIsAdmin", function () {
 
   test("works", function () {
     const req = {};
-    const res = { locals: { user: { is_admin: true } } };
+    const res = { locals: { user: { isAdmin: true } } };
     ensureIsAdmin(req, res, next);
   });
 
   test("works: not admin", function () {
     const req = {};
-    const res = { locals: { user: { is_admin: false } } };
+    const res = { locals: { user: { isAdmin: false } } };
     expect( () => {
       ensureIsAdmin(req, res, next)
     }).toThrow(UnauthorizedError);

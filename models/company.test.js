@@ -116,7 +116,7 @@ describe("filterCompanies", function () {
 
   test("works: returns correct query", function () {
     let filter = {"minEmployees": 3}
-    let query = Company.filterCompanies(filter);
+    let query = Company._filterCompanies(filter);
     console.log(query, '********')
     expect(query).toEqual(
       {"setCols": "WHERE num_employees >= $1", "values": [3]}
@@ -125,7 +125,7 @@ describe("filterCompanies", function () {
 
   test("works: multiple queries", function () {
     let filter = {"minEmployees": 3, "nameLike": "ben"}
-    let query = Company.filterCompanies(filter);
+    let query = Company._filterCompanies(filter);
     expect(query).toEqual(
       {"setCols":  "WHERE num_employees >= $1 AND name ILIKE '%'||$2||'%'",
       "values": [3, "ben"]}
@@ -134,7 +134,7 @@ describe("filterCompanies", function () {
 
   test("works: no queries", function () {
     let filter = {}
-    let query = Company.filterCompanies(filter);
+    let query = Company._filterCompanies(filter);
     expect(query).toEqual(
       {"setCols":  "",
       "values": []}

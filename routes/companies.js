@@ -24,7 +24,7 @@ const router = new express.Router();
  *
  * Authorization required: login, admin
  */
-
+// TODO: consolidate ensureLoggedIn and ensureIsAdmin
 router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
     req.body,
