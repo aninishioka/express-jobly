@@ -98,6 +98,7 @@ describe("GET /companies", function () {
 
   test("get companies filtered by name", async function () {
     const resp = await request(app).get("/companies?nameLike=c1");
+    console.log('****', resp.body)
     expect(resp.statusCode).toEqual(200);
     expect(resp.body).toEqual({
       companies: [

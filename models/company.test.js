@@ -86,9 +86,8 @@ describe("findAll", function () {
     ]);
   });
 
-  // TODO: do all pessimistic paths
   test("works: filter by minEmployees", async function () {
-    const filter = { minEmployees: 3 }
+    const filter = { minEmployees: 3}
     let companies = await Company.findAll(filter);
     expect(companies).toEqual([
       {
@@ -100,7 +99,50 @@ describe("findAll", function () {
       }
     ]);
   });
+
+  test("min employees as string", async function () {
+    const filter = { minEmployees: 5, maxEmployees: 2 };
+    try {
+      await Company.findAll(filter)
+    } catch (err) {
+      expect(err.message).toEqual("minEmployees must be less than maxEmployees")
+    }
+  });
 });
+
+/************************************** filter */
+
+describe("filterCompanies", function () {
+
+  test("works: returns correct query", function () {
+    let filter = {"minEmployees": 3}
+    let query = Company.filterCompanies(filter);
+    console.log(query, '********')
+    expect(query).toEqual(
+      {"setCols": "WHERE num_employees >= $1", "values": [3]}
+      );
+  });
+
+  test("works: multiple queries", function () {
+    let filter = {"minEmployees": 3, "nameLike": "ben"}
+    let query = Company.filterCompanies(filter);
+    expect(query).toEqual(
+      {"setCols":  "WHERE num_employees >= $1 AND name ILIKE '%'||$2||'%'",
+      "values": [3, "ben"]}
+      );
+  });
+
+  test("works: no queries", function () {
+    let filter = {}
+    let query = Company.filterCompanies(filter);
+    expect(query).toEqual(
+      {"setCols":  "",
+      "values": []}
+      );
+  });
+
+});
+
 
 /************************************** get */
 

@@ -2,7 +2,7 @@
 
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
-const { sqlForPartialUpdate} = require("../helpers/sql");
+const { sqlForPartialUpdate } = require("../helpers/sql");
 
 /** Related functions for companies. */
 
@@ -59,8 +59,6 @@ class Company {
    *
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
-// TODO: separate out sql where clause builder
-// TODO: sanitize where clause
   static async findAll(filter = {}) {
     let whereClause = '';
     const { minEmployees, maxEmployees, nameLike } = filter;
@@ -69,14 +67,17 @@ class Company {
       throw new BadRequestError('minEmployees must be less than maxEmployees');
     }
 
-    if (Object.keys(filter).length > 0) {
-      whereClause = 'WHERE ';
-      const filters = [];
-      if (minEmployees) filters.push(`num_employees >= ${minEmployees}`);
-      if (maxEmployees) filters.push(`num_employees <= ${maxEmployees}`);
-      if (nameLike) filters.push(`name ILIKE '%${nameLike}%'`);
-      whereClause += filters.join(' AND ');
-    }
+    // if (Object.keys(filter).length > 0) {
+    //   whereClause = 'WHERE ';
+    //   const filters = [];
+    //   if (minEmployees) filters.push(`num_employees >= ${minEmployees}`);
+    //   if (maxEmployees) filters.push(`num_employees <= ${maxEmployees}`);
+    //   if (nameLike) filters.push(`name ILIKE '%${nameLike}%'`);
+    //   whereClause += filters.join(' AND ');
+    // }
+
+    const { setCols, values } = this.filterCompanies(filter);
+
 
     const companiesRes = await db.query(`
         SELECT handle,
@@ -85,9 +86,40 @@ class Company {
                num_employees AS "numEmployees",
                logo_url      AS "logoUrl"
         FROM companies
-        ${whereClause}
-        ORDER BY name`);
+        ${setCols}
+        ORDER BY name`,
+      [...values]);
     return companiesRes.rows;
+  }
+
+
+  /**
+   *  Takes filter object, returns sql query to filter
+    * - minEmployees
+    * - maxEmployees
+    * - nameLike (will find case-insensitive, partial matches)
+   */
+  static _filterCompanies(data) {
+    const keys = Object.keys(data);
+
+    if (keys.length < 1) {
+      return {setCols: "", values: []};
+    }
+
+    let whereClause = 'WHERE ';
+
+    const filters = keys.map((colName, idx) => {
+      if (colName === "minEmployees") return (`num_employees >= $${idx + 1}`);
+      if (colName === "maxEmployees") return (`num_employees <=  $${idx + 1}`);
+      if (colName === "nameLike") return (`name ILIKE '%'||$${idx + 1}||'%'`);
+      // `name ILIKE '%$${idx + 1}%'`
+    });
+
+    return {
+      setCols: whereClause += filters.join(' AND '),
+      values: Object.values(data)
+    };
+
   }
 
   /** Given a company handle, return data about company.
