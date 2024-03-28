@@ -8,7 +8,8 @@ const {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
-  commonAfterAll
+  commonAfterAll,
+  jobIds
 } = require("./_testCommon");
 const { DatabaseError } = require("pg");
 
@@ -17,28 +18,26 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
+const newJob = {
 
+  companyHandle: "c1",
+  title: "waiter",
+  salary: 10000,
+  equity: 0,
+
+};
+
+const badJob = {
+
+  companyHandle: "panda",
+  title: "waiter",
+  salary: 10000,
+  equity: 0.6,
+
+};
 /************************************** create */
 
 describe("create", function () {
-
-  const newJob = {
-
-    companyHandle: "c1",
-    title: "waiter",
-    salary: 10000,
-    equity: 0,
-
-  };
-
-  const badJob = {
-
-    companyHandle: "panda",
-    title: "waiter",
-    salary: 10000,
-    equity: 0.6,
-
-  };
 
   test("works", async function () {
 
@@ -285,14 +284,7 @@ describe("get", function () {
 
 
 describe("update", function () {
-  const newJob = {
 
-    companyHandle: "c1",
-    title: "waiter",
-    salary: 10000,
-    equity: 0,
-
-  };
   test("works: updating a nonexistent job", async function () {
     const updatedJobInfo = {
       title: "New Title",
@@ -304,36 +296,32 @@ describe("update", function () {
   });
 
   test("works: updating a job", async function () {
-    let job = await Job.create(newJob);
-
     const updatedJobInfo = {
       title: "New Title",
       salary: 1000000,
       equity: 0,
     };
 
-    job = await Job.update(job.id, updatedJobInfo);
+    const job = await Job.update(jobIds[0], updatedJobInfo);
 
     expect(job).toEqual(
       {
-        "companyHandle": "c1",
-        "equity": "0",
-        "id": expect.any(Number),
-        "salary": 1000000,
-        "title": "New Title"
+        companyHandle: 'c1',
+        title: 'New Title',
+        salary: 1000000,
+        equity: '0',
+        id: expect.any(Number)
       });
   });
 
   test("works: errors for null fields", async function () {
-    let job = await Job.create(newJob);
-
     const updatedJobInfoNull = {
       title: null,
       salary: null,
       equity: 0,
     };
 
-    expect(() => Job.update(job.id, updatedJobInfoNull))
+    expect(() => Job.update(jobIds[0], updatedJobInfoNull))
                     .rejects.toThrow(DatabaseError);
   });
 
@@ -343,32 +331,20 @@ describe("update", function () {
 
 
 describe("delete", function () {
-  const newJob = {
-
-    companyHandle: "c1",
-    title: "waiter",
-    salary: 10000,
-    equity: 0,
-
-  };
   test("works: deleting a job", async function () {
 
-    let job = await Job.create(newJob);
+    Job.remove(jobIds[0])
 
-    Job.remove(job.id)
-
-    expect(() => Job.get(job.id)
+    expect(() => Job.get(jobIds[0])
                     .rejects.toThrow(NotFoundError));
 
   });
 
   test("deleting a job that doesn't exist throws Error", async function () {
 
-    let job = await Job.create(newJob);
+    Job.remove(jobIds[0])
 
-    Job.remove(job.id)
-
-    expect(() => Job.remove(job.id)
+    expect(() => Job.remove(jobIds[0])
                     .rejects.toThrow(NotFoundError));
 
   });
