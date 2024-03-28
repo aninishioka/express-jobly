@@ -14,7 +14,6 @@ const userUpdateSchema = require("../schemas/userUpdate.json");
 
 const router = express.Router();
 
-// TODO: update docstring (only admin)
 /** POST / { user }  => { user, token }
  *
  * Adds a new user. This is not the registration endpoint --- instead, this is
@@ -24,10 +23,10 @@ const router = express.Router();
  * This returns the newly created user and an authentication token for them:
  *  {user: { username, firstName, lastName, email, isAdmin }, token }
  *
- * Authorization required: login
+ * Authorization required: admin
  **/
 
-router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.post("/", ensureIsAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
       req.body,
       userNewSchema,
@@ -48,10 +47,10 @@ router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) 
  *
  * Returns list of all users.
  *
- * Authorization required: login
+ * Authorization required: admin
  **/
 
-router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.get("/", ensureIsAdmin, async function (req, res, next) {
   const users = await User.findAll();
   return res.json({ users });
 });
@@ -61,7 +60,7 @@ router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required: admin or correct user
  **/
 
 router.get("/:username", ensureIsAdminOrUser, async function (req, res, next) {
@@ -77,7 +76,7 @@ router.get("/:username", ensureIsAdminOrUser, async function (req, res, next) {
  *
  * Returns { username, firstName, lastName, email, isAdmin }
  *
- * Authorization required: login
+ * Authorization required:  admin or correct user
  **/
 
 router.patch("/:username", ensureIsAdminOrUser, async function (req, res, next) {
@@ -98,7 +97,7 @@ router.patch("/:username", ensureIsAdminOrUser, async function (req, res, next) 
 
 /** DELETE /[username]  =>  { deleted: username }
  *
- * Authorization required: login
+ * Authorization required:  admin or correct user
  **/
 
 router.delete("/:username", ensureIsAdminOrUser, async function (req, res, next) {

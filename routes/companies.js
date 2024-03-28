@@ -24,8 +24,7 @@ const router = new express.Router();
  *
  * Authorization required: login, admin
  */
-// TODO: consolidate ensureLoggedIn and ensureIsAdmin
-router.post("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.post("/", ensureIsAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
     req.body,
     companyNewSchema,
@@ -99,7 +98,7 @@ router.get("/:handle", async function (req, res, next) {
  * Authorization required: login, admin
  */
 
-router.patch("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.patch("/:handle",ensureIsAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
     req.body,
     companyUpdateSchema,
@@ -119,7 +118,7 @@ router.patch("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res
  * Authorization: login, admin
  */
 
-router.delete("/:handle", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
+router.delete("/:handle", ensureIsAdmin, async function (req, res, next) {
   await Company.remove(req.params.handle);
   return res.json({ deleted: req.params.handle });
 });
