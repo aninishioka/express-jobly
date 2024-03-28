@@ -77,7 +77,7 @@ describe("getAllJobsFromCompany", function () {
 
   test("works: gets all jobs", async function () {
 
-    await Job.create(newJobC1)
+    await Job.create(newJobC1);
 
     const jobs = await Job.getAllJobsFromCompany("c1");
 
@@ -332,8 +332,7 @@ describe("update", function () {
 
 describe("delete", function () {
   test("works: deleting a job", async function () {
-
-    Job.remove(jobIds[0])
+    await Job.remove(jobIds[0])
 
     expect(() => Job.get(jobIds[0])
                     .rejects.toThrow(NotFoundError));
@@ -341,8 +340,7 @@ describe("delete", function () {
   });
 
   test("deleting a job that doesn't exist throws Error", async function () {
-
-    Job.remove(jobIds[0])
+    await Job.remove(jobIds[0])
 
     expect(() => Job.remove(jobIds[0])
                     .rejects.toThrow(NotFoundError));
