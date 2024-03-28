@@ -83,13 +83,24 @@ class Job {
       return { setCols: "", values: [] };
     }
 
+
     let whereClause = 'WHERE ';
 
     const filters = keys.map((colName, idx) => {
       if (colName === "minSalary") return (`salary >= $${idx + 1}`);
-      if (colName === "minEquity") return (`equity >=  $${idx + 1}`);
+      if (colName === "hasEquity") {
+        if (data.hasEquity === true) {
+          return (`equity != $${idx + 1}`);
+        } else {
+          return  (`equity = $${idx + 1}`);
+        }
+      }
       if (colName === "titleLike") return (`title ILIKE '%'||$${idx + 1}||'%'`);
     });
+
+    if (keys.includes("hasEquity")) {
+      data.hasEquity = 0;
+    }
 
     return {
       setCols: whereClause += filters.join(' AND '),
@@ -106,6 +117,7 @@ class Job {
   **/
 
   static async get(id) {
+
     const jobRes = await db.query(`
        SELECT id,
               company_handle AS "companyHandle",
@@ -121,6 +133,104 @@ class Job {
 
     return job;
 
+  }
+
+  /*Given a company handle, return all jobs from that company
+  *
+  * Returns [{id, companyHandle, title, salary, equity }....]
+  *
+  * Throws NotFoundError if company found.
+  **/
+
+  static async getAllJobsFromCompany(companyHandle) {
+    // check if company exists first, query OR method?
+
+    const companyRes = await db.query(`
+    SELECT handle,
+           name,
+           description,
+           num_employees AS "numEmployees",
+           logo_url      AS "logoUrl"
+    FROM companies
+    WHERE handle = $1`, [companyHandle]);
+
+    const company = companyRes.rows[0];
+
+    if (!company) throw new NotFoundError(`No company: ${companyHandle}`);
+
+    const jobRes = await db.query(`
+       SELECT id,
+              company_handle AS "companyHandle",
+              title,
+              salary,
+              equity
+       FROM jobs
+       WHERE company_handle = $1`, [companyHandle]);
+
+    const jobs = jobRes.rows;
+
+    if (!jobs) throw new NotFoundError(`No jobs: ${companyHandle}`);
+
+    return jobs;
+
+  }
+
+  /** Update company job with `data`.
+   *
+   * This is a "partial update" --- it's fine if data doesn't contain all the
+   * fields; this only changes provided ones.
+   *
+   * Data can include: { title, salary, equity }
+   *
+   * Returns { id, company_handle, title, salary, equity, }
+   *
+   * Throws NotFoundError if not found.
+   */
+
+  static async update(id, data) {
+    const { setCols, values } = sqlForPartialUpdate(
+      data,
+      {
+        companyHandle: "company_handle"
+      });
+
+    const idVarIdx = "$" + (values.length + 1);
+
+    const querySql = `
+      UPDATE jobs
+      SET ${setCols}
+      WHERE id = ${idVarIdx}
+      RETURNING
+        id,
+        company_handle AS "companyHandle",
+        title,
+        salary,
+        equity`;
+
+    const result = await db.query(querySql, [...values, id]);
+    const job = result.rows[0];
+
+
+    if (!job) throw new NotFoundError(`No job: ${id}`);
+
+    return job;
+  }
+
+
+  /** Delete given job from database; returns undefined.
+   *
+   * Throws NotFoundError if job not found.
+   **/
+
+  static async remove(id) {
+    const result = await db.query(`
+        DELETE
+        FROM jobs
+        WHERE id = $1
+        RETURNING id`, [id]);
+    const job = result.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${id}`);
   }
 
 }
