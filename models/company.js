@@ -112,7 +112,6 @@ class Company {
       if (colName === "minEmployees") return (`num_employees >= $${idx + 1}`);
       if (colName === "maxEmployees") return (`num_employees <=  $${idx + 1}`);
       if (colName === "nameLike") return (`name ILIKE '%'||$${idx + 1}||'%'`);
-      // `name ILIKE '%$${idx + 1}%'`
     });
 
     return {

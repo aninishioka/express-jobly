@@ -35,7 +35,7 @@ class Job {
                               equity)
             VALUES ($1, $2, $3, $4)
             RETURNING id, title, salary, equity, company_handle AS "companyHandle"`,
-            [companyHandle, title, salary, equity]);
+      [companyHandle, title, salary, equity]);
 
     const newJob = result.rows[0];
 
@@ -44,8 +44,84 @@ class Job {
   }
 
 
+  /** Find all jobs.
+   *
+   * Takes filter object. Can filter on provided search filters:
+    * - salary
+    * - equity
+    * - titleLike (will find case-insensitive, partial matches)
+   *
+   * Returns [{id, companyHandle, title, salary, equity }, ...]
+   * */
+  static async findAll(filter = {}) {
+    const { setCols, values } = this._filterJobs(filter);
+
+    const jobsRes = await db.query(`
+      SELECT id,
+             company_handle AS "companyHandle",
+             title,
+             salary,
+             equity
+      FROM jobs
+      ${setCols}`,
+      [...values]);
+
+    return jobsRes.rows;
+  }
 
 
+  /**
+   *  Takes filter object, returns sql query to filter
+    * - salary
+    * - equity
+    * - titleLike (will find case-insensitive, partial matches)
+   */
+  static _filterJobs(data) {
+    const keys = Object.keys(data);
+
+    if (keys.length < 1) {
+      return { setCols: "", values: [] };
+    }
+
+    let whereClause = 'WHERE ';
+
+    const filters = keys.map((colName, idx) => {
+      if (colName === "minSalary") return (`salary >= $${idx + 1}`);
+      if (colName === "minEquity") return (`equity >=  $${idx + 1}`);
+      if (colName === "titleLike") return (`title ILIKE '%'||$${idx + 1}||'%'`);
+    });
+
+    return {
+      setCols: whereClause += filters.join(' AND '),
+      values: Object.values(data)
+    };
+  }
+
+
+  /*Given a job id, return data about job.
+  *
+  * Returns {id, companyHandle, title, salary, equity }
+  *
+  * Throws NotFoundError if not found.
+  **/
+
+  static async get(id) {
+    const jobRes = await db.query(`
+       SELECT id,
+              company_handle AS "companyHandle",
+              title,
+              salary,
+              equity
+       FROM jobs
+       WHERE id = $1`, [id]);
+
+    const job = jobRes.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${id}`);
+
+    return job;
+
+  }
 
 }
 

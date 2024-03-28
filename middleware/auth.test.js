@@ -5,7 +5,8 @@ const { UnauthorizedError } = require("../expressError");
 const {
   authenticateJWT,
   ensureLoggedIn,
-  ensureIsAdmin
+  ensureIsAdmin,
+  ensureIsAdminOrUser
 } = require("./auth");
 
 
@@ -86,4 +87,27 @@ describe("ensureIsAdmin", function () {
     }).toThrow(UnauthorizedError);
   });
 
+});
+
+
+describe("ensureIsAdminOrUser", function () {
+  test("works", function () {
+    const req = {};
+    const res = { locals: { user: { username: "test" , isAdmin: true } } };
+    ensureIsAdminOrUser(req, res, next);
+  });
+
+  test("works: correct user", function () {
+    const req = { params: {username: 'u1' }};
+    const res = { locals: { user: { username: "u1", isAdmin: false } } };
+    ensureIsAdminOrUser(req, res, next);
+  });
+
+  test("unauth: other non-admin user", function () {
+    const req = { params: {username: 'u1' }};
+    const res = { locals: { user: { username: "u2", isAdmin: false } } };
+    expect( () => {
+      ensureIsAdminOrUser(req, res, next)
+    }).toThrow(UnauthorizedError);
+  });
 });
