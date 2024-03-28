@@ -113,6 +113,7 @@ router.patch("/:handle",ensureIsAdmin, async function (req, res, next) {
   return res.json({ company });
 });
 
+
 /** DELETE /[handle]  =>  { deleted: handle }
  *
  * Authorization: login, admin

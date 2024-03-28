@@ -117,7 +117,6 @@ describe("filterCompanies", function () {
   test("works: returns correct query", function () {
     let filter = {"minEmployees": 3}
     let query = Company._filterCompanies(filter);
-    console.log(query, '********')
     expect(query).toEqual(
       {"setCols": "WHERE num_employees >= $1", "values": [3]}
       );
@@ -155,6 +154,13 @@ describe("get", function () {
       description: "Desc1",
       numEmployees: 1,
       logoUrl: "http://c1.img",
+      jobs: [{
+        "companyHandle": "c1",
+        "equity": "0.2",
+        "id": expect.any(Number),
+        "salary": 10000000,
+        "title": "J1",
+      }]
     });
   });
 

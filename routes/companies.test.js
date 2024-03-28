@@ -113,7 +113,6 @@ describe("GET /companies", function () {
 
   test("get companies filtered by name", async function () {
     const resp = await request(app).get("/companies?nameLike=c1");
-    console.log('****', resp.body);
     expect(resp.statusCode).toEqual(200);
     expect(resp.body).toEqual({
       companies: [
@@ -160,6 +159,19 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [{
+          "companyHandle": "c1",
+          "equity": "0.2",
+          "id": expect.any(Number),
+          "salary": 2000,
+          "title": "J2",
+        }, {
+          "companyHandle": "c1",
+          "equity": "0.4",
+          "id": expect.any(Number),
+          "salary": 1000,
+          "title": "J1",
+        }]
       },
     });
   });
@@ -173,6 +185,13 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [{
+          "companyHandle": "c2",
+          "equity": "0",
+          "id": expect.any(Number),
+          "salary": 2000,
+          "title": "J3",
+        }]
       },
     });
   });

@@ -231,3 +231,121 @@ describe("GET /jobs/:handle/all", function () {
   });
 
 });
+
+/************************************** PATCH /jobId */
+
+
+describe("PATCH jobs/jobId", function () {
+
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${testJobIds[0]}`)
+      .send({
+        title: "new Job Title",
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.body).toEqual({
+      job:
+      {
+        id: expect.any(Number),
+        title: "new Job Title",
+        salary: 1000,
+        equity: "0.4",
+        companyHandle: "c1"
+      }
+    });
+  });
+
+  test("doesn't work for users", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${testJobIds[0]}`)
+      .send({
+        title: "new job title",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+    expect(resp.body).toEqual({
+      error: {
+        "message": "Unauthorized",
+        status: 401
+      }
+    });
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${testJobIds[0]}`)
+      .send({
+        name: "J1-new",
+      });
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("not found on no such company", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/12345`)
+      .send({
+        title: "new nope",
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+
+  test("bad request on handle change attempt", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${testJobIds[0]}`)
+      .send({
+        companyHandle: "c1-new",
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("bad request on invalid data", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${testJobIds[0]}`)
+      .send({
+        equity: "not-equity",
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(400);
+  });
+});
+
+
+/************************************** Delete /jobs/jobId */
+
+describe("DELETE /jobs/jobId", function () {
+  test("works for admin", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/${testJobIds[0]}`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.body).toEqual({ deleted: `${testJobIds[0]}` });
+  });
+
+  test("unauth for user", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/${testJobIds[0]}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+    expect(resp.body).toEqual({
+      error: {
+        "message": "Unauthorized",
+        status: 401
+      }
+    });
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/${testJobIds[0]}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("not found for no such company", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/34495`)
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});

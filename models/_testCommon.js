@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt");
 const db = require("../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../config");
 let jobIds = [];
-console.log('jobids init ====', jobIds);
 
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
