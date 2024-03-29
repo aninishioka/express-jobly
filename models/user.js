@@ -56,7 +56,7 @@ class User {
    **/
 
   static async register(
-      { username, password, firstName, lastName, email, isAdmin }) {
+    { username, password, firstName, lastName, email, isAdmin }) {
     const duplicateCheck = await db.query(`
         SELECT username
         FROM users
@@ -84,13 +84,13 @@ class User {
                     last_name AS "lastName",
                     email,
                     is_admin AS "isAdmin"`, [
-          username,
-          hashedPassword,
-          firstName,
-          lastName,
-          email,
-          isAdmin,
-        ],
+      username,
+      hashedPassword,
+      firstName,
+      lastName,
+      email,
+      isAdmin,
+    ],
     );
 
     const user = result.rows[0];
@@ -166,12 +166,12 @@ class User {
     }
 
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          firstName: "first_name",
-          lastName: "last_name",
-          isAdmin: "is_admin",
-        });
+      data,
+      {
+        firstName: "first_name",
+        lastName: "last_name",
+        isAdmin: "is_admin",
+      });
     const usernameVarIdx = "$" + (values.length + 1);
 
     const querySql = `
@@ -205,7 +205,42 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
   }
+
+
+  /* Let user apply to job.
+
+  Takes username and jobId.
+
+  Returns {username, job_id} */
+
+  static async applyToJob(username, jobId) {
+    const user = await db.query(`
+    SELECT username
+    FROM users
+    WHERE username = $1
+  `, [username]);
+
+    if (!user.rows[0]) throw new NotFoundError(`No user: ${username}`);
+
+    const job = await db.query(`
+    SELECT id
+    FROM jobs
+    WHERE id = $1
+  `, [jobId]);
+
+    if (!job.rows[0]) throw new NotFoundError(`No job: ${jobId}`);
+
+    const result = await db.query(`
+      INSERT INTO applications (username, job_id)
+      VALUES ($1, $2)
+      RETURNING username, job_id
+    `,
+      [username, jobId]);
+
+    return result.rows[0];
+  }
 }
+
 
 
 module.exports = User;
