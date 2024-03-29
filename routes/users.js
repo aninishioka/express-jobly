@@ -109,7 +109,7 @@ router.delete("/:username", ensureIsAdminOrUser, async function (req, res, next)
 
 /** POST /[users/username/jobs/jobId]  =>  { applied: {username, jobId} }
  *
- * Authorization required:  login
+ * Authorization required:  login, login user or admin
  **/
 
 router.post("/:username/jobs/:jobId", ensureIsAdminOrUser, async function (req, res, next) {
