@@ -141,6 +141,7 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      jobs: []
     });
   });
 
@@ -237,8 +238,7 @@ describe("applyToJob", function () {
   test("works", async function () {
     const result = await User.applyToJob('u1', jobIds[0]);
     expect(result).toEqual({
-      username: 'u1',
-      job_id: expect.any(Number)
+      jobId: expect.any(Number)
     });
     const appRes = await db.query(
       `SELECT username, job_id

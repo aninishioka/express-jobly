@@ -120,7 +120,7 @@ class User {
   /** Given a username, return data about user.
    *
    * Returns { username, first_name, last_name, email, is_admin, jobs }
-   *   where jobs is { id, title, company_handle, company_name, state }
+   *   where jobs is [ jobId, jobId, ... ]
    *
    * Throws NotFoundError if user not found.
    **/
@@ -139,6 +139,14 @@ class User {
     const user = userRes.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+
+    const appRes = await db.query(`
+          SELECT job_id
+          FROM applications
+          WHERE username = $1`, [username]);
+
+
+    user.jobs = appRes.rows.map(app => app.job_id);
 
     return user;
   }
@@ -233,7 +241,7 @@ class User {
     const result = await db.query(`
       INSERT INTO applications (username, job_id)
       VALUES ($1, $2)
-      RETURNING username, job_id
+      RETURNING job_id AS "jobId"
     `,
       [username, jobId]);
 

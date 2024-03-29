@@ -28,9 +28,9 @@ const router = express.Router();
 
 router.post("/", ensureIsAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(
-      req.body,
-      userNewSchema,
-      { required: true },
+    req.body,
+    userNewSchema,
+    { required: true },
   );
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
@@ -81,9 +81,9 @@ router.get("/:username", ensureIsAdminOrUser, async function (req, res, next) {
 
 router.patch("/:username", ensureIsAdminOrUser, async function (req, res, next) {
   const validator = jsonschema.validate(
-      req.body,
-      userUpdateSchema,
-      { required: true },
+    req.body,
+    userUpdateSchema,
+    { required: true },
   );
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
@@ -103,6 +103,21 @@ router.patch("/:username", ensureIsAdminOrUser, async function (req, res, next) 
 router.delete("/:username", ensureIsAdminOrUser, async function (req, res, next) {
   await User.remove(req.params.username);
   return res.json({ deleted: req.params.username });
+});
+
+
+
+/** POST /[users/username/jobs/jobId]  =>  { applied: {username, jobId} }
+ *
+ * Authorization required:  login
+ **/
+
+router.post("/:username/jobs/:jobId", ensureIsAdminOrUser, async function (req, res, next) {
+  const jobId = Number(req.params.jobId);
+  const username = req.params.username;
+
+  const job = await User.applyToJob(username, jobId);
+  return res.json({ applied: job });
 });
 
 
